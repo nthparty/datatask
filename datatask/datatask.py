@@ -20,6 +20,103 @@ class datatask(dict):
 
     The resource definitions attribute should be a map of names to
     individual file paths or URIs.
+
+    >>> dt = datatask({
+    ...     "resources": {
+    ...         "abc": "https://examples.org/abc.txt",
+    ...         "xyz": "xyz.txt"
+    ...     },
+    ...     "inputs": {"abc": ["column"]},
+    ...     "outputs": {"xyz": [{"abc": "column"}]}
+    ... })
+
+    Any attempt to construct an instance with an invalid collection of
+    resource definitions raises an exception.
+
+    >>> dt = {"resources": [], "outputs": {"xyz.txt": []}}
+    >>> datatask(dt) # doctest: +NORMALIZE_WHITESPACE
+    Traceback (most recent call last):
+      ...
+    TypeError: resources attribute value must be a dictionary that maps \
+resource name strings to file path or URI strings
+    >>> datatask({"resources": {"abc": 123}, "outputs": {"xyz.txt": []}})
+    Traceback (most recent call last):
+      ...
+    TypeError: each resource entry value must be a path or URI string
+
+    Input entries are specified using a dictionary that maps each input
+    either to ``None`` or to its schema (consisting of a list of column names).
+
+    >>> dt = datatask({
+    ...     "inputs": {"abc.txt": ["a", "b", "c"], "def.csv": None},
+    ...     "outputs": {"xyz.txt": []}
+    ... })
+
+    Any attempt to construct an instance with an invalid collection of
+    input entries raises an exception.
+
+    >>> dt = {"inputs": [], "outputs": {"xyz.txt": []}}
+    >>> datatask(dt) # doctest: +NORMALIZE_WHITESPACE
+    Traceback (most recent call last):
+      ...
+    TypeError: inputs attribute must be a dictionary mapping resource names, \
+paths, and/or URIs to schemas
+    >>> dt = {"inputs": {123: []}, "outputs": {"xyz.txt": []}}
+    >>> datatask(dt) # doctest: +NORMALIZE_WHITESPACE
+    Traceback (most recent call last):
+      ...
+    TypeError: each specified input must be a string corresponding to a defined \
+resource name, a valid path, or a valid URI
+    >>> datatask({"inputs": {"abc.txt": 123}, "outputs": {"xyz.txt": []}})
+    Traceback (most recent call last):
+      ...
+    TypeError: input schema must be None or a list of strings
+
+    A valid instance must have at least one output entry. Each output entry
+    maps an output resource name, path, or URI to the schema for that output
+    entry. The schema must be a list of dictionaries; no other constraints
+    are enforced on the structure of a schema. A recommended approach is to
+    use a dictionary such as ``{"abc.csv": "b"}`` to reference a named column
+    ``"b"`` found in an input resource ``"abc.csv"``.
+
+    >>> dt = datatask({
+    ...     "resources": {
+    ...         "xyz": "xyz.csv"
+    ...     },
+    ...     "inputs": {"abc.csv": ["a", "b", "c"]},
+    ...     "outputs": {"xyz": [{"abc.csv": "c"}, {"abc.csv": "b"}]}
+    ... })
+
+    Any attempt to construct an instance without any output entries or an
+    invalid collection of output entries raises an exception.
+
+    >>> datatask.from_json({})
+    Traceback (most recent call last):
+      ...
+    ValueError: at least one output must be specified
+    >>> datatask.from_json({"outputs": {}})
+    Traceback (most recent call last):
+      ...
+    ValueError: at least one output must be specified
+    >>> datatask.from_json({"outputs": []}) # doctest: +NORMALIZE_WHITESPACE
+    Traceback (most recent call last):
+      ...
+    TypeError: outputs attribute must be a dictionary mapping resource names, \
+paths, and/or URIs to schemas
+    >>> datatask.from_json({"outputs": None}) # doctest: +NORMALIZE_WHITESPACE
+    Traceback (most recent call last):
+      ...
+    TypeError: outputs attribute must be a dictionary mapping resource \
+names, paths, and/or URIs to schemas
+    >>> datatask.from_json({"outputs": {123: []}}) # doctest: +NORMALIZE_WHITESPACE
+    Traceback (most recent call last):
+      ...
+    ValueError: each specified output must be a string corresponding to a \
+defined resource name, a valid path, or a valid URI
+    >>> datatask.from_json({"outputs": {"xyz.txt": 123}})
+    Traceback (most recent call last):
+      ...
+    TypeError: output schema must be a list of dictionaries
     """
     def __new__(cls, argument: dict) -> datatask: # pylint: disable=R0912
         """
@@ -126,18 +223,39 @@ class datatask(dict):
     def resources(self):
         """
         Return dictionary mapping resource name to resource URIs for this instance.
+
+        >>> dt = datatask.from_json({
+        ...     "inputs": {"abc.txt": None},
+        ...     "outputs": {"xyz.text": [{"abc.txt": 0}]}
+        ... })
+        >>> dt.resources()
+        {}
         """
         return self.get("resources", {})
 
     def inputs(self):
         """
         Return dictionary of inputs for this instance.
+
+        >>> dt = datatask.from_json({
+        ...     "inputs": {"abc.txt": None},
+        ...     "outputs": {"xyz.text": [{"abc.txt": 0}]}
+        ... })
+        >>> dt.inputs()
+        {'abc.txt': None}
         """
         return self.get("inputs", {})
 
     def outputs(self):
         """
         Return dictionary of outputs for this instance.
+
+        >>> dt = datatask.from_json({
+        ...     "inputs": {"abc.txt": None},
+        ...     "outputs": {"xyz.text": [{"abc.txt": 0}]}
+        ... })
+        >>> dt.outputs()
+        {'xyz.text': [{'abc.txt': 0}]}
         """
         return self.get("outputs", {})
 
