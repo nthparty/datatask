@@ -4,11 +4,15 @@ datatask
 
 General-purpose data structure and representation format for tasks (stand-alone or part of a larger data workflow) that involve multiple data resources.
 
-|pypi|
+|pypi| |readthedocs|
 
 .. |pypi| image:: https://badge.fury.io/py/datatask.svg
    :target: https://badge.fury.io/py/datatask
    :alt: PyPI version and link.
+
+.. |readthedocs| image:: https://readthedocs.org/projects/datatask/badge/?version=latest
+   :target: https://datatask.readthedocs.io/en/latest/?badge=latest
+   :alt: Read the Docs documentation status.
 
 Package Installation and Usage
 ------------------------------
