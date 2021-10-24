@@ -44,6 +44,16 @@ resource name strings to file path or URI strings
       ...
     TypeError: each resource entry value must be a path or URI string
 
+    A valid instance must have at least one input entry or one output entry.
+    Having only input entries is acceptable (a data task may be executed for
+    its side effects), as is having only output entries (a data task may be
+    executed that generates data without referencing any input data).
+
+    >>> datatask.from_json({})
+    Traceback (most recent call last):
+      ...
+    ValueError: at least one input or output must be specified
+
     Input entries are specified using a dictionary that maps each input
     either to ``None`` or to its schema (consisting of a list of column names).
 
@@ -72,12 +82,11 @@ resource name, a valid path, or a valid URI
       ...
     TypeError: input schema must be None or a list of strings
 
-    A valid instance must have at least one output entry. Each output entry
-    maps an output resource name, path, or URI to the schema for that output
-    entry. The schema must be a list of dictionaries; no other constraints
-    are enforced on the structure of a schema. A recommended approach is to
-    use a dictionary such as ``{"abc.csv": "b"}`` to reference a named column
-    ``"b"`` found in an input resource ``"abc.csv"``.
+    Each output entry maps an output resource name, path, or URI to the schema
+    for that output entry. The schema must be a list of dictionaries; no other
+    constraints are enforced on the structure of a schema. The recommended
+    approach is to use a dictionary such as ``{"abc.csv": "b"}`` to reference
+    a named column ``"b"`` found in an input resource ``"abc.csv"``.
 
     >>> dt = datatask({
     ...     "resources": {
@@ -90,10 +99,6 @@ resource name, a valid path, or a valid URI
     Any attempt to construct an instance without any output entries or an
     invalid collection of output entries raises an exception.
 
-    >>> datatask.from_json({})
-    Traceback (most recent call last):
-      ...
-    ValueError: at least one output must be specified
     >>> datatask.from_json({"outputs": {}})
     Traceback (most recent call last):
       ...
@@ -166,32 +171,37 @@ defined resource name, a valid path, or a valid URI
                         'input schema must be None or a list of strings'
                     )
 
-        # Check that the outputs attribute is present and has a valid structure.
-        if "outputs" not in argument:
-            raise ValueError('at least one output must be specified')
-
-        if not isinstance(argument["outputs"], dict):
-            raise TypeError(
-                'outputs attribute must be a dictionary mapping ' + \
-                'resource names, paths, and/or URIs to schemas'
-            )
-
-        if len(argument["outputs"]) == 0:
-            raise ValueError('at least one output must be specified')
-
-        for (name_or_uri, schema) in argument["outputs"].items():
-            if not isinstance(name_or_uri, str):
-                raise ValueError(
-                    'each specified output must be a string corresponding to ' + \
-                    'a defined resource name, a valid path, or a valid URI'
-                )
-            if not (
-                isinstance(schema, list) and\
-                all(isinstance(column, dict) for column in schema)
-            ):
+        # Check that the outputs attribute has a valid structure.
+        if "outputs" in argument:
+            if not isinstance(argument["outputs"], dict):
                 raise TypeError(
-                    'output schema must be a list of dictionaries'
+                    'outputs attribute must be a dictionary mapping ' + \
+                    'resource names, paths, and/or URIs to schemas'
                 )
+
+            if len(argument["outputs"]) == 0:
+                raise ValueError('at least one output must be specified')
+
+            for (name_or_uri, schema) in argument["outputs"].items():
+                if not isinstance(name_or_uri, str):
+                    raise ValueError(
+                        'each specified output must be a string corresponding to ' + \
+                        'a defined resource name, a valid path, or a valid URI'
+                    )
+                if not (
+                    isinstance(schema, list) and\
+                    all(isinstance(column, dict) for column in schema)
+                ):
+                    raise TypeError(
+                        'output schema must be a list of dictionaries'
+                    )
+
+        # Check that the instance is non-trivial.
+        if (
+            ("inputs" not in argument or len(argument.get("inputs", {})) == 0) and \
+            ("outputs" not in argument or len(argument.get("outputs", {})) == 0)
+        ):
+            raise ValueError('at least one input or output must be specified')
 
         return dict.__new__(cls, argument)
 
