@@ -55,10 +55,23 @@ resource name strings to file path or URI strings
     ValueError: at least one input or output must be specified
 
     Input entries are specified using a dictionary that maps each input
-    either to ``None`` or to its schema (consisting of a list of column names).
+    resource name, path, or URI either directly to its schema (consisting of
+    a list of column names) or to an input specification dictionary that can
+    contain a schema definition (optional) and a boolean value indicating
+    whether a header column is present (also optional).
 
     >>> dt = datatask({
-    ...     "inputs": {"abc.txt": ["a", "b", "c"], "def.csv": None},
+    ...     "inputs": {"abc.txt": ["a", "b", "c"], "def.csv": {}},
+    ...     "outputs": {"xyz.txt": []}
+    ... })
+    >>> dt = datatask({
+    ...     "inputs": {
+    ...         "abc.txt": {
+    ...             "schema": ["a", "b", "c"],
+    ...             "header": False
+    ...         },
+    ...         "def.csv": {}
+    ...     },
     ...     "outputs": {"xyz.txt": []}
     ... })
 
@@ -77,16 +90,33 @@ paths, and/or URIs to schemas
       ...
     TypeError: each specified input must be a string corresponding to a defined \
 resource name, a valid path, or a valid URI
-    >>> datatask({"inputs": {"abc.txt": 123}, "outputs": {"xyz.txt": []}})
+    >>> datatask({"inputs": {"abc.txt": 123}})
     Traceback (most recent call last):
       ...
-    TypeError: input schema must be None or a list of strings
+    TypeError: input must be associated with a schema or specification
+    >>> datatask({"inputs": {"abc.txt": [123]}})
+    Traceback (most recent call last):
+      ...
+    TypeError: input schema must be a list of strings
+    >>> dt = datatask({"inputs": {"abc.txt": {"header": 123}}})
+    Traceback (most recent call last):
+      ...
+    TypeError: input header indicator must be a boolean value
+    >>> d = {"inputs": {"abc.txt": {"invalid_field": 123}}}
+    >>> dt = datatask(d) # doctest: +NORMALIZE_WHITESPACE
+    Traceback (most recent call last):
+      ...
+    ValueError: input specification can only contain a schema definition and/or \
+a header indicator
 
-    Each output entry maps an output resource name, path, or URI to the schema
-    for that output entry. The schema must be a list of dictionaries; no other
-    constraints are enforced on the structure of a schema. The recommended
-    approach is to use a dictionary such as ``{"abc.csv": "b"}`` to reference
-    a named column ``"b"`` found in an input resource ``"abc.csv"``.
+    Output entries are specified using a dictionary that maps each output
+    resource name, path, or URI either directly to its schema or to an output
+    specification dictionary that can contain a header row definition (optional)
+    and a schema definition (required). The schema definition must consist of a
+    list of dictionaries; no other constraints are enforced on the structure of
+    a schema. A recommended approach is to use a single-entry dictionary such as
+    ``{"abc.csv": "b"}`` to reference a named column ``"b"`` found in an input
+    resource ``"abc.csv"``.
 
     >>> dt = datatask({
     ...     "resources": {
@@ -94,6 +124,22 @@ resource name, a valid path, or a valid URI
     ...     },
     ...     "inputs": {"abc.csv": ["a", "b", "c"]},
     ...     "outputs": {"xyz": [{"abc.csv": "c"}, {"abc.csv": "b"}]}
+    ... })
+
+    The header row definition must be a list of strings (corresponding to column
+    names).
+
+    >>> dt = datatask({
+    ...     "resources": {
+    ...         "xyz": "xyz.csv"
+    ...     },
+    ...     "inputs": {"abc.csv": ["a", "b", "c"]},
+    ...     "outputs": {
+    ...         "xyz": {
+    ...             "schema": [{"abc.csv": 2}, {"abc.csv": 1}],
+    ...             "header": ["z", "y"]
+    ...         }
+    ...     }
     ... })
 
     Any attempt to construct an instance without any output entries or an
@@ -121,7 +167,28 @@ defined resource name, a valid path, or a valid URI
     >>> datatask.from_json({"outputs": {"xyz.txt": 123}})
     Traceback (most recent call last):
       ...
+    TypeError: output must be associated with a schema or specification
+    >>> datatask.from_json({"outputs": {"xyz.txt": [1, 2, 3]}})
+    Traceback (most recent call last):
+      ...
     TypeError: output schema must be a list of dictionaries
+    >>> dt = datatask({
+    ...     "outputs": {
+    ...         "xyz.csv": {
+    ...             "schema": [{"abc.csv": 2}, {"abc.csv": 1}],
+    ...             "header": 123
+    ...         }
+    ...     }
+    ... })
+    Traceback (most recent call last):
+      ...
+    TypeError: output header definition must be a list of strings
+    >>> d = {"outputs": {"xyz.csv": {"invalid_field": 123}}}
+    >>> dt = datatask(d) # doctest: +NORMALIZE_WHITESPACE
+    Traceback (most recent call last):
+      ...
+    ValueError: output specification can only contain a schema definition and a \
+header definition
     """
     def __new__(cls, argument: dict) -> datatask: # pylint: disable=R0912
         """
@@ -154,22 +221,41 @@ defined resource name, a valid path, or a valid URI
                     'resource names, paths, and/or URIs to schemas'
                 )
 
-            for (name_or_uri, schema) in argument["inputs"].items():
+            for (name_or_uri, specification) in argument["inputs"].items():
+                # Ensure the input reference is valid.
                 if not isinstance(name_or_uri, str):
                     raise TypeError(
                         'each specified input must be a string corresponding to ' + \
                         'a defined resource name, a valid path, or a valid URI'
                     )
-                if not (
-                    schema is None or\
-                    (
-                        isinstance(schema, list) and\
-                        all(isinstance(column, str) for column in schema)
-                    )
-                ):
+
+                # Ensure that the specification has a valid structure.
+                (header, schema) = (False, None)
+                if isinstance(specification, list):
+                    schema = specification
+                elif isinstance(specification, dict):
+                    if not set(specification.keys()).issubset({"schema", "header"}):
+                        raise ValueError(
+                            'input specification can only contain a schema ' + \
+                            'definition and/or a header indicator'
+                        )
+                    schema = specification.get("schema", [])
+                    header = specification.get("header", False)
+                else:
                     raise TypeError(
-                        'input schema must be None or a list of strings'
+                        'input must be associated with a schema or specification'
                     )
+
+                if not isinstance(header, bool):
+                    raise TypeError(
+                        'input header indicator must be a boolean value'
+                    )
+
+                if not (
+                    isinstance(schema, list) and\
+                    all(isinstance(column, str) for column in schema)
+                ):
+                    raise TypeError('input schema must be a list of strings')
 
         # Check that the outputs attribute has a valid structure.
         if "outputs" in argument:
@@ -182,19 +268,46 @@ defined resource name, a valid path, or a valid URI
             if len(argument["outputs"]) == 0:
                 raise ValueError('at least one output must be specified')
 
-            for (name_or_uri, schema) in argument["outputs"].items():
+            for (name_or_uri, specification) in argument["outputs"].items():
+                # Ensure the output reference is valid.
                 if not isinstance(name_or_uri, str):
                     raise ValueError(
                         'each specified output must be a string corresponding to ' + \
                         'a defined resource name, a valid path, or a valid URI'
                     )
+
+                # Ensure that the specification has a valid structure.
+                (header, schema) = (None, None)
+                if isinstance(specification, list):
+                    schema = specification
+                elif isinstance(specification, dict):
+                    if not set(specification.keys()).issubset({"schema", "header"}):
+                        raise ValueError(
+                            'output specification can only contain a schema ' + \
+                            'definition and a header definition'
+                        )
+                    schema = specification.get("schema", [])
+                    header = specification.get("header", None)
+                else:
+                    raise TypeError(
+                        'output must be associated with a schema or specification'
+                    )
+
+                if not (
+                    header is None or (
+                        isinstance(header, list) and \
+                        all(isinstance(column, str) for column in header)
+                    )
+                ):
+                    raise TypeError(
+                        'output header definition must be a list of strings'
+                    )
+
                 if not (
                     isinstance(schema, list) and\
                     all(isinstance(column, dict) for column in schema)
                 ):
-                    raise TypeError(
-                        'output schema must be a list of dictionaries'
-                    )
+                    raise TypeError('output schema must be a list of dictionaries')
 
         # Check that the instance is non-trivial.
         if (
@@ -235,7 +348,7 @@ defined resource name, a valid path, or a valid URI
         Return dictionary mapping resource name to resource URIs for this instance.
 
         >>> dt = datatask.from_json({
-        ...     "inputs": {"abc.txt": None},
+        ...     "inputs": {"abc.txt": {}},
         ...     "outputs": {"xyz.text": [{"abc.txt": 0}]}
         ... })
         >>> dt.resources()
@@ -248,11 +361,11 @@ defined resource name, a valid path, or a valid URI
         Return dictionary of inputs for this instance.
 
         >>> dt = datatask.from_json({
-        ...     "inputs": {"abc.txt": None},
+        ...     "inputs": {"abc.txt": {}},
         ...     "outputs": {"xyz.text": [{"abc.txt": 0}]}
         ... })
         >>> dt.inputs()
-        {'abc.txt': None}
+        {'abc.txt': {}}
         """
         return self.get("inputs", {})
 
@@ -261,7 +374,7 @@ defined resource name, a valid path, or a valid URI
         Return dictionary of outputs for this instance.
 
         >>> dt = datatask.from_json({
-        ...     "inputs": {"abc.txt": None},
+        ...     "inputs": {"abc.txt": {}},
         ...     "outputs": {"xyz.text": [{"abc.txt": 0}]}
         ... })
         >>> dt.outputs()
