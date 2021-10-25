@@ -53,6 +53,10 @@ resource name strings to file path or URI strings
     Traceback (most recent call last):
       ...
     ValueError: at least one input or output must be specified
+    >>> datatask.from_json({"inputs": {}, "outputs": {}})
+    Traceback (most recent call last):
+      ...
+    ValueError: at least one input or output must be specified
 
     Input entries are specified using a dictionary that maps each input
     resource name, path, or URI either directly to its schema (consisting of
@@ -145,10 +149,6 @@ a header indicator
     Any attempt to construct an instance without any output entries or an
     invalid collection of output entries raises an exception.
 
-    >>> datatask.from_json({"outputs": {}})
-    Traceback (most recent call last):
-      ...
-    ValueError: at least one output must be specified
     >>> datatask.from_json({"outputs": []}) # doctest: +NORMALIZE_WHITESPACE
     Traceback (most recent call last):
       ...
@@ -266,9 +266,6 @@ header definition
                     'resource names, paths, and/or URIs to their ' + \
                     'corresponding specifications or schemas'
                 )
-
-            if len(argument["outputs"]) == 0:
-                raise ValueError('at least one output must be specified')
 
             for (name_or_uri, specification) in argument["outputs"].items():
                 # Ensure the output reference is valid.
