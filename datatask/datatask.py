@@ -83,7 +83,7 @@ resource name strings to file path or URI strings
     Traceback (most recent call last):
       ...
     TypeError: inputs attribute must be a dictionary mapping resource names, \
-paths, and/or URIs to schemas
+paths, and/or URIs to their corresponding specifications or schemas
     >>> dt = {"inputs": {123: []}, "outputs": {"xyz.txt": []}}
     >>> datatask(dt) # doctest: +NORMALIZE_WHITESPACE
     Traceback (most recent call last):
@@ -153,12 +153,12 @@ a header indicator
     Traceback (most recent call last):
       ...
     TypeError: outputs attribute must be a dictionary mapping resource names, \
-paths, and/or URIs to schemas
+paths, and/or URIs to their corresponding specifications or schemas
     >>> datatask.from_json({"outputs": None}) # doctest: +NORMALIZE_WHITESPACE
     Traceback (most recent call last):
       ...
     TypeError: outputs attribute must be a dictionary mapping resource \
-names, paths, and/or URIs to schemas
+names, paths, and/or URIs to their corresponding specifications or schemas
     >>> datatask.from_json({"outputs": {123: []}}) # doctest: +NORMALIZE_WHITESPACE
     Traceback (most recent call last):
       ...
@@ -218,7 +218,8 @@ header definition
             if not isinstance(argument["inputs"], dict):
                 raise TypeError(
                     'inputs attribute must be a dictionary mapping ' + \
-                    'resource names, paths, and/or URIs to schemas'
+                    'resource names, paths, and/or URIs to their ' + \
+                    'corresponding specifications or schemas'
                 )
 
             for (name_or_uri, specification) in argument["inputs"].items():
@@ -262,7 +263,8 @@ header definition
             if not isinstance(argument["outputs"], dict):
                 raise TypeError(
                     'outputs attribute must be a dictionary mapping ' + \
-                    'resource names, paths, and/or URIs to schemas'
+                    'resource names, paths, and/or URIs to their ' + \
+                    'corresponding specifications or schemas'
                 )
 
             if len(argument["outputs"]) == 0:
