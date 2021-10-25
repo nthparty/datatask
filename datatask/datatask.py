@@ -145,8 +145,8 @@ a header indicator
     ...     "inputs": {"abc.csv": ["a", "b", "c"]},
     ...     "outputs": {
     ...         "xyz": {
-    ...             "schema": [{"abc.csv": 2}, {"abc.csv": 1}],
-    ...             "header": ["z", "y"]
+    ...             "schema": [{"z": {"abc.csv": 2}}, {"y": {"abc.csv": 1}}],
+    ...             "header": True
     ...         }
     ...     }
     ... })
@@ -190,7 +190,7 @@ defined resource name, a valid path, or a valid URI
     ... })
     Traceback (most recent call last):
       ...
-    TypeError: output header definition must be a list of strings
+    TypeError: output header indicator must be a boolean value
     >>> d = {"outputs": {"xyz.csv": {"invalid_field": 123}}}
     >>> dt = datatask(d) # doctest: +NORMALIZE_WHITESPACE
     Traceback (most recent call last):
@@ -232,7 +232,9 @@ header definition
 
             if isinstance(argument["inputs"], list):
                 if not all(isinstance(input, str) for input in argument["inputs"]):
-                    raise TypeError('each input resource name, path, or URI must be a string')
+                    raise TypeError(
+                        'each input resource name, path, or URI must be a string'
+                    )
 
             if isinstance(argument["inputs"], dict):
                 for (name_or_uri, specification) in argument["inputs"].items():
@@ -282,19 +284,21 @@ header definition
 
             if isinstance(argument["outputs"], list):
                 if not all(isinstance(output, str) for output in argument["outputs"]):
-                    raise TypeError('each output resource name, path, or URI must be a string')
+                    raise TypeError(
+                        'each output resource name, path, or URI must be a string'
+                    )
 
             if isinstance(argument["outputs"], dict):
                 for (name_or_uri, specification) in argument["outputs"].items():
                     # Ensure the output reference is valid.
                     if not isinstance(name_or_uri, str):
                         raise ValueError(
-                            'each specified output must be a string corresponding to ' + \
-                            'a defined resource name, a valid path, or a valid URI'
+                            'each specified output must be a string corresponding ' + \
+                            'to a defined resource name, a valid path, or a valid URI'
                         )
 
                     # Ensure that the specification has a valid structure.
-                    (header, schema) = (None, None)
+                    (header, schema) = (False, None)
                     if isinstance(specification, list):
                         schema = specification
                     elif isinstance(specification, dict):
@@ -304,21 +308,14 @@ header definition
                                 'definition and a header definition'
                             )
                         schema = specification.get("schema", [])
-                        header = specification.get("header", None)
+                        header = specification.get("header", False)
                     else:
                         raise TypeError(
                             'output must be associated with a schema or specification'
                         )
 
-                    if not (
-                        header is None or (
-                            isinstance(header, list) and \
-                            all(isinstance(column, str) for column in header)
-                        )
-                    ):
-                        raise TypeError(
-                            'output header definition must be a list of strings'
-                        )
+                    if not isinstance(header, bool):
+                        raise TypeError('output header indicator must be a boolean value')
 
                     if not (
                         isinstance(schema, list) and\
