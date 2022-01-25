@@ -4,7 +4,7 @@ datatask
 
 General-purpose data structure and representation format for tasks (stand-alone or part of a larger data workflow) that involve multiple data resources.
 
-|pypi| |readthedocs| |travis| |coveralls|
+|pypi| |readthedocs| |actions| |coveralls|
 
 .. |pypi| image:: https://badge.fury.io/py/datatask.svg
    :target: https://badge.fury.io/py/datatask
@@ -14,9 +14,9 @@ General-purpose data structure and representation format for tasks (stand-alone 
    :target: https://datatask.readthedocs.io/en/latest/?badge=latest
    :alt: Read the Docs documentation status.
 
-.. |travis| image:: https://app.travis-ci.com/nthparty/datatask.svg?branch=main
-   :target: https://app.travis-ci.com/nthparty/datatask
-   :alt: Travis CI build status.
+.. |actions| image:: https://github.com/nthparty/datatask/workflows/lint-test-cover-docs/badge.svg
+   :target: https://github.com/nthparty/datatask/actions/workflows/lint-test-cover-docs.yml
+   :alt: GitHub Actions status.
 
 .. |coveralls| image:: https://coveralls.io/repos/github/nthparty/datatask/badge.svg?branch=main
    :target: https://coveralls.io/github/nthparty/datatask?branch=main
