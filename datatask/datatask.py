@@ -8,7 +8,7 @@ from typing import Union
 import doctest
 import json
 
-class datatask(dict):
+class datatask(dict): # pylint: disable=C0103
     """
     Data structure that represents a data task. A data task consists of:
 
