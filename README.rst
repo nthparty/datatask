@@ -44,7 +44,13 @@ This library makes it possible to define the input and output data resources inv
     >>> from datatask import datatask
     >>> dt = datatask({"inputs": ["transactions.csv"], "outputs": ["report.csv"]})
 
-The ``datatask`` class is derived from ``dict``, making conversion to JSON straightforward (using either the built-in `json <https://docs.python.org/3/library/json.html>`__ library or the wrapper methods presented below)::
+.. |datatask| replace:: ``datatask``
+.. _datatask: https://datatask.readthedocs.io/en/latest/_source/datatask.html#datatask.datatask.datatask
+
+.. |dict| replace:: ``dict``
+.. _dict: https://docs.python.org/3/library/stdtypes.html#dict
+
+The |datatask|_ class is derived from |dict|_, making conversion to JSON straightforward (using either the built-in `json <https://docs.python.org/3/library/json.html>`__ library or the wrapper methods presented below)::
 
     >>> dt.to_json()
     '{"inputs": ["transactions.csv"], "outputs": ["report.csv"]}'

@@ -347,17 +347,27 @@ header definition
 
         return datatask(argument)
 
-    def to_json(self, *args, **kwargs) -> str:
+    def to_json(self: datatask, *args, **kwargs) -> str:
         """
         Convert an instance of this class into a JSON string.
 
         >>> dt = datatask({"outputs": {"abc.text": []}})
         >>> dt.to_json()
         '{"outputs": {"abc.text": []}}'
+
+        All arguments supplied to this method are passed directly to the internal
+        invocation of :obj:`json.dumps`.
+
+        >>> print(dt.to_json(indent=2))
+        {
+          "outputs": {
+            "abc.text": []
+          }
+        }
         """
         return json.dumps(self, *args, **kwargs)
 
-    def resources(self):
+    def resources(self: datatask) -> dict:
         """
         Return dictionary mapping resource name to resource URIs for this instance.
 
@@ -370,7 +380,7 @@ header definition
         """
         return self.get("resources", {})
 
-    def inputs(self):
+    def inputs(self: datatask) -> dict:
         """
         Return dictionary of inputs for this instance.
 
@@ -383,7 +393,7 @@ header definition
         """
         return self.get("inputs", {})
 
-    def outputs(self):
+    def outputs(self: datatask) -> dict:
         """
         Return dictionary of outputs for this instance.
 
