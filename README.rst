@@ -26,9 +26,9 @@ Purpose
 -------
 This library provides a data structure and format for representing individual tasks or steps (within a larger data workflow) that involve one or more resources containing tabular data. Data resource paths and URIs can be associated with more concise resource names (called *references*), and these references can then be used to specify task inputs and outputs (including their schemas). This library is *not* intended to act or to be used as a query language, though a collection of individual tasks may constitute (or may be included within) a larger query or data workflow graph.
 
-Package Installation and Usage
-------------------------------
-The package is available on `PyPI <https://pypi.org/project/datatask/>`_::
+Installation and Usage
+----------------------
+This library is available as a `package on PyPI <https://pypi.org/project/datatask>`__::
 
     python -m pip install datatask
 
@@ -44,7 +44,7 @@ This library makes it possible to define the input and output data resources inv
     >>> from datatask import datatask
     >>> dt = datatask({"inputs": ["transactions.csv"], "outputs": ["report.csv"]})
 
-The ``datatask`` class is derived from ``dict``, making conversion to JSON straightforward (using either the built-in `json <https://docs.python.org/3/library/json.html>`_ library or the wrapper methods presented below)::
+The ``datatask`` class is derived from ``dict``, making conversion to JSON straightforward (using either the built-in `json <https://docs.python.org/3/library/json.html>`__ library or the wrapper methods presented below)::
 
     >>> dt.to_json()
     '{"inputs": ["transactions.csv"], "outputs": ["report.csv"]}'
@@ -189,49 +189,55 @@ To indicate that the values of a particular column in an output schema are compu
     ...    }
     ... })
 
+Development
+-----------
+All installation and development dependencies are fully specified in ``pyproject.toml``. The ``project.optional-dependencies`` object is used to `specify optional requirements <https://peps.python.org/pep-0621>`__ for various development tasks. This makes it possible to specify additional options (such as ``docs``, ``lint``, and so on) when performing installation using `pip <https://pypi.org/project/pip>`__::
+
+    python -m pip install .[docs,lint]
+
 Documentation
--------------
-.. include:: toc.rst
+^^^^^^^^^^^^^
+The documentation can be generated automatically from the source files using `Sphinx <https://www.sphinx-doc.org>`__::
 
-The documentation can be generated automatically from the source files using `Sphinx <https://www.sphinx-doc.org/>`_::
-
+    python -m pip install .[docs]
     cd docs
-    python -m pip install -r requirements.txt
-    sphinx-apidoc -f -E --templatedir=_templates -o _source .. ../setup.py && make html
+    sphinx-apidoc -f -E --templatedir=_templates -o _source .. && make html
 
 Testing and Conventions
------------------------
-All unit tests are executed and their coverage is measured when using `pytest <https://docs.pytest.org/>`_ (see ``setup.cfg`` for configuration details)::
+^^^^^^^^^^^^^^^^^^^^^^^
+All unit tests are executed and their coverage is measured when using `pytest <https://docs.pytest.org>`__ (see the ``pyproject.toml`` file for configuration details)::
 
-    python -m pip install pytest pytest-cov
+    python -m pip install .[test]
     python -m pytest
 
-Alternatively, all unit tests are included in the module itself and can be executed using `doctest <https://docs.python.org/3/library/doctest.html>`_::
+Alternatively, all unit tests are included in the module itself and can be executed using `doctest <https://docs.python.org/3/library/doctest.html>`__::
 
     python datatask/datatask.py -v
 
-Style conventions are enforced using `Pylint <https://www.pylint.org/>`_::
+Style conventions are enforced using `Pylint <https://www.pylint.org>`__::
 
-    python -m pip install pylint
+    python -m pip install .[lint]
     python -m pylint datatask
 
 Contributions
--------------
-In order to contribute to the source code, open an issue or submit a pull request on the `GitHub page <https://github.com/nthparty/datatask>`_ for this library.
+^^^^^^^^^^^^^
+In order to contribute to the source code, open an issue or submit a pull request on the `GitHub page <https://github.com/nthparty/datatask>`__ for this library.
 
 Versioning
-----------
-The version number format for this library and the changes to the library associated with version number increments conform with `Semantic Versioning 2.0.0 <https://semver.org/#semantic-versioning-200>`_.
+^^^^^^^^^^
+The version number format for this library and the changes to the library associated with version number increments conform with `Semantic Versioning 2.0.0 <https://semver.org/#semantic-versioning-200>`__.
 
 Publishing
-----------
-This library can be published as a `package on PyPI <https://pypi.org/project/datatask/>`_ by a package maintainer. Install the `wheel <https://pypi.org/project/wheel/>`_ package, remove any old build/distribution files, and package the source into a distribution archive::
+^^^^^^^^^^
+This library can be published as a `package on PyPI <https://pypi.org/project/datatask>`__ by a package maintainer. First, install the dependencies required for packaging and publishing::
 
-    python -m pip install wheel
-    rm -rf dist *.egg-info
-    python setup.py sdist bdist_wheel
+    python -m pip install .[publish]
 
-Next, install the `twine <https://pypi.org/project/twine/>`_ package and upload the package distribution archive to PyPI::
+Remove any old build/distribution files and package the source into a distribution archive::
 
-    python -m pip install twine
+    rm -rf build dist *.egg-info
+    python -m build --sdist --wheel .
+
+Finally, upload the package distribution archive to `PyPI <https://pypi.org>`__ using the `twine <https://pypi.org/project/twine>`__ package::
+
     python -m twine upload dist/*
