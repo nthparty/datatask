@@ -223,7 +223,7 @@ Alternatively, all unit tests are included in the module itself and can be execu
 Style conventions are enforced using `Pylint <https://www.pylint.org>`__::
 
     python -m pip install .[lint]
-    python -m pylint datatask
+    python -m pylint src/datatask
 
 Contributions
 ^^^^^^^^^^^^^
