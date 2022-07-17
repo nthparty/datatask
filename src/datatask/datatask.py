@@ -8,7 +8,7 @@ from typing import Union
 import doctest
 import json
 
-class datatask(dict): # pylint: disable=C0103
+class datatask(dict):
     """
     Data structure that represents a data task. A data task consists of:
 
@@ -34,7 +34,7 @@ class datatask(dict): # pylint: disable=C0103
     resource definitions raises an exception.
 
     >>> dt = {"resources": [], "outputs": {"xyz.txt": []}}
-    >>> datatask(dt) # doctest: +NORMALIZE_WHITESPACE
+    >>> datatask(dt)
     Traceback (most recent call last):
       ...
     TypeError: resources attribute value must be a dictionary that maps \
@@ -83,7 +83,7 @@ resource name strings to file path or URI strings
     input entries raises an exception.
 
     >>> dt = {"inputs": 123, "outputs": {"xyz.txt": []}}
-    >>> datatask(dt) # doctest: +NORMALIZE_WHITESPACE
+    >>> datatask(dt)
     Traceback (most recent call last):
       ...
     TypeError: inputs attribute must be a list of resource names, paths, \
@@ -94,7 +94,7 @@ their corresponding specifications or schemas
       ...
     TypeError: each input resource name, path, or URI must be a string
     >>> dt = {"inputs": {123: []}, "outputs": {"xyz.txt": []}}
-    >>> datatask(dt) # doctest: +NORMALIZE_WHITESPACE
+    >>> datatask(dt)
     Traceback (most recent call last):
       ...
     TypeError: each specified input must be a string corresponding to a defined \
@@ -112,7 +112,7 @@ resource name, a valid path, or a valid URI
       ...
     TypeError: input header indicator must be a boolean value
     >>> d = {"inputs": {"abc.txt": {"invalid_field": 123}}}
-    >>> dt = datatask(d) # doctest: +NORMALIZE_WHITESPACE
+    >>> dt = datatask(d)
     Traceback (most recent call last):
       ...
     ValueError: input specification can only contain a schema definition and/or \
@@ -154,7 +154,7 @@ a header indicator
     Any attempt to construct an instance without with an invalid collection of
     output entries raises an exception.
 
-    >>> datatask.from_json({"outputs": []}) # doctest: +NORMALIZE_WHITESPACE
+    >>> datatask.from_json({"outputs": []})
     Traceback (most recent call last):
       ...
     ValueError: at least one input or output must be specified
@@ -162,12 +162,12 @@ a header indicator
     Traceback (most recent call last):
       ...
     TypeError: each output resource name, path, or URI must be a string
-    >>> datatask.from_json({"outputs": None}) # doctest: +NORMALIZE_WHITESPACE
+    >>> datatask.from_json({"outputs": None})
     Traceback (most recent call last):
       ...
     TypeError: outputs attribute must be a dictionary mapping resource \
 names, paths, and/or URIs to their corresponding specifications or schemas
-    >>> datatask.from_json({"outputs": {123: []}}) # doctest: +NORMALIZE_WHITESPACE
+    >>> datatask.from_json({"outputs": {123: []}})
     Traceback (most recent call last):
       ...
     ValueError: each specified output must be a string corresponding to a \
@@ -192,13 +192,13 @@ defined resource name, a valid path, or a valid URI
       ...
     TypeError: output header indicator must be a boolean value
     >>> d = {"outputs": {"xyz.csv": {"invalid_field": 123}}}
-    >>> dt = datatask(d) # doctest: +NORMALIZE_WHITESPACE
+    >>> dt = datatask(d)
     Traceback (most recent call last):
       ...
     ValueError: output specification can only contain a schema definition and a \
 header definition
     """
-    def __new__(cls, argument: dict) -> datatask: # pylint: disable=R0912,R0915
+    def __new__(cls, argument: dict) -> datatask:
         """
         Create class instance from a dictionary with a compatible structure.
 
@@ -210,8 +210,8 @@ header definition
         if "resources" in argument:
             if not isinstance(argument["resources"], dict):
                 raise TypeError(
-                    'resources attribute value must be a dictionary ' + \
-                    'that maps resource name strings to file path or ' + \
+                    'resources attribute value must be a dictionary ' +
+                    'that maps resource name strings to file path or ' +
                     'URI strings'
                 )
 
@@ -225,8 +225,8 @@ header definition
         if "inputs" in argument:
             if not isinstance(argument["inputs"], (list, dict)):
                 raise TypeError(
-                    'inputs attribute must be a list of resource names, paths, ' + \
-                    'and/or URIs, or a dictionary mapping resource names, paths, ' + \
+                    'inputs attribute must be a list of resource names, paths, ' +
+                    'and/or URIs, or a dictionary mapping resource names, paths, ' +
                     'and/or URIs to their corresponding specifications or schemas'
                 )
 
@@ -241,7 +241,7 @@ header definition
                     # Ensure the input reference is valid.
                     if not isinstance(name_or_uri, str):
                         raise TypeError(
-                            'each specified input must be a string corresponding to ' + \
+                            'each specified input must be a string corresponding to ' +
                             'a defined resource name, a valid path, or a valid URI'
                         )
 
@@ -252,7 +252,7 @@ header definition
                     elif isinstance(specification, dict):
                         if not set(specification.keys()).issubset({"schema", "header"}):
                             raise ValueError(
-                                'input specification can only contain a schema ' + \
+                                'input specification can only contain a schema ' +
                                 'definition and/or a header indicator'
                             )
                         schema = specification.get("schema", [])
@@ -268,7 +268,7 @@ header definition
                         )
 
                     if not (
-                        isinstance(schema, list) and\
+                        isinstance(schema, list) and
                         all(isinstance(column, str) for column in schema)
                     ):
                         raise TypeError('input schema must be a list of strings')
@@ -277,8 +277,8 @@ header definition
         if "outputs" in argument:
             if not isinstance(argument["outputs"], (list, dict)):
                 raise TypeError(
-                    'outputs attribute must be a dictionary mapping ' + \
-                    'resource names, paths, and/or URIs to their ' + \
+                    'outputs attribute must be a dictionary mapping ' +
+                    'resource names, paths, and/or URIs to their ' +
                     'corresponding specifications or schemas'
                 )
 
@@ -293,7 +293,7 @@ header definition
                     # Ensure the output reference is valid.
                     if not isinstance(name_or_uri, str):
                         raise ValueError(
-                            'each specified output must be a string corresponding ' + \
+                            'each specified output must be a string corresponding ' +
                             'to a defined resource name, a valid path, or a valid URI'
                         )
 
@@ -304,7 +304,7 @@ header definition
                     elif isinstance(specification, dict):
                         if not set(specification.keys()).issubset({"schema", "header"}):
                             raise ValueError(
-                                'output specification can only contain a schema ' + \
+                                'output specification can only contain a schema ' +
                                 'definition and a header definition'
                             )
                         schema = specification.get("schema", [])
@@ -318,14 +318,14 @@ header definition
                         raise TypeError('output header indicator must be a boolean value')
 
                     if not (
-                        isinstance(schema, list) and\
+                        isinstance(schema, list) and
                         all(isinstance(column, dict) for column in schema)
                     ):
                         raise TypeError('output schema must be a list of dictionaries')
 
         # Check that the instance is non-trivial.
         if (
-            ("inputs" not in argument or len(argument.get("inputs", {})) == 0) and \
+            ("inputs" not in argument or len(argument.get("inputs", {})) == 0) and
             ("outputs" not in argument or len(argument.get("outputs", {})) == 0)
         ):
             raise ValueError('at least one input or output must be specified')
@@ -406,5 +406,5 @@ header definition
         """
         return self.get("outputs", {})
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     doctest.testmod() # pragma: no cover
